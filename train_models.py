@@ -180,7 +180,7 @@ def train_model(model, num_epochs):
 
             # Guardar historial
             history[f"{phase}_loss"].append(epoch_loss)
-            history[f"{phase}_accuracy"].append(epoch_acc)
+            history[f"{phase}_accuracy"].append(epoch_acc.item())
             history[f"{phase}_f1"].append(epoch_f1)
 
             print(f"{phase.capitalize()} Loss: {epoch_loss:.4f} "
