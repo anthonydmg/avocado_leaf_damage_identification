@@ -6,8 +6,7 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from torchvision import datasets
 
-base_path = "./datos/imagenes_filtradas"
-base_target = "./datos/dataset_daño_hojas_palta"
+
 
 def copy_organize_dataset(base_path, base_target):
     for damage in os.listdir(base_path):
@@ -86,6 +85,12 @@ def copiar_indices(indices, destino, samples, classes):
 
     print(f"Copiados {len(indices)} archivos en {destino}")
 
+base_path = "./datos/imagenes_filtradas"
+base_target = "./datos/dataset_daño_hojas_palta"
+
+copy_organize_dataset(base_path, base_target)
+count_images_dataset(base_target)
+
 # Ruta donde están tus datos originales
 data_dir = './datos/dataset_daño_hojas_palta'
 
@@ -93,7 +98,7 @@ data_dir = './datos/dataset_daño_hojas_palta'
 output_dir = './datos/dataset_split'
 train_dir = os.path.join(output_dir, 'train')
 test_dir = os.path.join(output_dir, 'test')
-
+print("Dividir datos en train an test")
 train_idx, test_idx, samples, classes = split_datset(data_dir, output_dir,)
 # Copiar train y test
 copiar_indices(train_idx, train_dir, samples, classes)
@@ -101,5 +106,3 @@ copiar_indices(test_idx, test_dir, samples, classes)
 
 print("✓ División terminada correctamente.")
 
-# copy_organize_dataset(base_path, base_target)
-#count_images_dataset(base_target)
