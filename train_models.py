@@ -73,8 +73,8 @@ def load_model(num_classes, device):
     print("Cargando modelo EfficientNetV2-S pre-entrenado...")
 
     # Cargar pesos pre-entrenados
-    weights = models.EfficientNet_V2_S_Weights.IMAGENET1K_V1
-    model = models.efficientnet_v2_s(weights=weights)
+    weights = models.EfficientNet_V2_M_Weights.IMAGENET1K_V1
+    model = models.efficientnet_v2_m(weights=weights)
 
     # Congelar todas las capas base
     for param in model.parameters():
@@ -269,7 +269,6 @@ if __name__ == '__main__':
     print("¡DataLoaders listos! 🚀")
     dataset_sizes = {'train': len(train_set), 'val': len(val_set)}
     num_classes = len(class_names)
-
 
     # Configurar dispositivo (GPU si está disponible)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
