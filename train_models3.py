@@ -77,28 +77,25 @@ def load_datasets(train_dir, val_dir, batch_size):
 
 
 def load_model(num_classes, device):
-    # --- 2. CARGA DEL MODELO (EFFICIENTNETV2-S) ---
-    print("Cargando modelo EfficientNetV2-S pre-entrenado...")
+    print("Cargando MobileNetV3-Large pre-entrenado...")
 
-    # Cargar pesos pre-entrenados
-    weights = models.EfficientNet_V2_S_Weights.IMAGENET1K_V1
-    model = models.efficientnet_v2_s(weights=weights)
+    # Cargar MobileNetV3 con pesos preentrenados
+    weights = models.MobileNet_V3_Small_Weights.IMAGENET1K_V1
+    model = models.mobilenet_v3_small(weights=weights)
 
-    # Congelar todas las capas base
+    # Congelar todas las capas del backbone
     for param in model.parameters():
         param.requires_grad = False
-    # 🔥 DESCONGELAR solo las últimas capas (fine-tuning parcial)
-    for name, param in model.named_parameters():
-        if "features.7" in name or "features.8" in name:
-            param.requires_grad = True
 
-    # Reemplazar el clasificador final
-    in_features = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(in_features, num_classes)
+    # Reemplazar la cabeza (classifier)
+    # MobileNetV3 usa model.classifier[-1] como capa final
+    in_features = model.classifier[-1].in_features
+    model.classifier[-1] = nn.Linear(in_features, num_classes)
+
     model = model.to(device)
-    print("Modelo listo para transfer learning.")
-    print("-" * 30)
 
+    print("Modelo MobileNetV3 listo para transfer learning.")
+    print("-" * 30)
     return model
 
 
@@ -215,7 +212,7 @@ def train_model(model, num_epochs):
     model.load_state_dict(best_model_wts)
     return model, history
 
-def plot_training_history(history, save_results_dir = "./results"):
+def plot_training_history(history, save_results_dir = "./results3"):
     epochs = range(1, len(history["train_loss"]) + 1)
     os.makedirs(save_results_dir, exist_ok=True)
 
@@ -223,9 +220,9 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.figure(figsize=(6,4))
     plt.plot(epochs, history["train_loss"], label="Train")
     plt.plot(epochs, history["val_loss"], label="Val")
-    plt.title("Loss EfficientNet_V2")
+    plt.title("Loss")
     plt.xlabel("Epochs")
-    plt.ylabel("Loss ")
+    plt.ylabel("Loss")
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(save_results_dir, "loss.png"))
@@ -236,7 +233,7 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.figure(figsize=(6,4))
     plt.plot(epochs, history["train_accuracy"], label="Train")
     plt.plot(epochs, history["val_accuracy"], label="Val")
-    plt.title("Accuracy EfficientNet_V2")
+    plt.title("Accuracy")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
     plt.legend()
@@ -249,9 +246,9 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.figure(figsize=(6,4))
     plt.plot(epochs, history["train_f1"], label="Train")
     plt.plot(epochs, history["val_f1"], label="Val")
-    plt.title("F1 Score (Macro) EfficientNet_V2")
+    plt.title("F1 Score (Macro)")
     plt.xlabel("Epochs")
-    plt.ylabel("F1 Score ")
+    plt.ylabel("F1 Score")
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(save_results_dir, "f1_score.png"))
@@ -414,7 +411,7 @@ if __name__ == '__main__':
         dataloaders['train'], 
         class_names, 
         device,
-        save_path="./results/train_confusion_matrix.png"
+        save_path="./results3/train_confusion_matrix.png"
     )
 
     print("Generando matriz de confusión validacion...")
@@ -424,11 +421,11 @@ if __name__ == '__main__':
         dataloaders['val'], 
         class_names, 
         device,
-        save_path="./results/val_confusion_matrix.png"
+        save_path="./results3/val_confusion_matrix.png"
     )
     print("Guardando Modelo...")
 
     # Guardar el modelo final 
-    ruta_modelo_guardado = "./efficientnetv2_s_final.pth"
+    ruta_modelo_guardado = "./mobilenet_v3_small_final.pth"
     torch.save(model_entrenado.state_dict(), ruta_modelo_guardado)
     print(f"Modelo guardado en: {ruta_modelo_guardado}")

@@ -81,7 +81,13 @@ target/
 # IPython
 profile_default/
 ipython_config.py
-
+models/
+results/
+results_past/
+results2/
+results3/
+datos/
+*.tflite
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:

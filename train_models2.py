@@ -12,14 +12,9 @@ import matplotlib.pyplot as plt
 import os
 from sklearn.metrics import f1_score, confusion_matrix, classification_report, accuracy_score
 import seaborn as sns
+import timm
+import torch.nn as nn
 
-class ImageFolderWithPaths(datasets.ImageFolder):
-    """Extiende ImageFolder para incluir rutas de archivos"""
-    def __getitem__(self, index):
-        img, label = super().__getitem__(index)
-        path = self.imgs[index][0]  # obtiene la ruta del archivo
-        return img, label, path
-    
 def load_datasets(train_dir, val_dir, batch_size):
     mean_nums = [0.485, 0.456, 0.406]
     std_nums = [0.229, 0.224, 0.225]
@@ -42,14 +37,14 @@ def load_datasets(train_dir, val_dir, batch_size):
     ])
 
     
-    dataset_for_train = ImageFolderWithPaths(
+    dataset_for_train = datasets.ImageFolder(
         root=train_dir,
-        transform=train_transforms
+        transform=train_transforms  # Aplicará augmentation
     )
 
-    dataset_for_val = ImageFolderWithPaths(
+    dataset_for_val = datasets.ImageFolder(
         root=val_dir,
-        transform=val_transforms
+        transform=val_transforms    # Aplicará solo el recorte/normalización
     )
 
     train_set = dataset_for_train
@@ -76,29 +71,45 @@ def load_datasets(train_dir, val_dir, batch_size):
 
 
 
-def load_model(num_classes, device):
-    # --- 2. CARGA DEL MODELO (EFFICIENTNETV2-S) ---
-    print("Cargando modelo EfficientNetV2-S pre-entrenado...")
 
-    # Cargar pesos pre-entrenados
-    weights = models.EfficientNet_V2_S_Weights.IMAGENET1K_V1
-    model = models.efficientnet_v2_s(weights=weights)
 
-    # Congelar todas las capas base
+def load_model(num_classes, device, timm_model_name="mobilevitv2_100.cvnets_in1k", pretrained=True):
+    """
+    Carga MobileViT-V2 desde timm, reemplaza el clasificador y congela el backbone.
+    timm_model_name: nombre del modelo en timm (hay varias variantes: _050, _075, _100, _200, etc.)
+    """
+    print(f"Cargando modelo {timm_model_name} desde timm (pretrained={pretrained})...")
+
+    # Crear el modelo con timm (si num_classes se pasa, timm crea una nueva cabeza)
+    model = timm.create_model(timm_model_name, pretrained=pretrained, num_classes=num_classes)
+    print("model:", model)
+    print()
+    # --- Congelar todo primero ---
     for param in model.parameters():
         param.requires_grad = False
-    # 🔥 DESCONGELAR solo las últimas capas (fine-tuning parcial)
-    for name, param in model.named_parameters():
-        if "features.7" in name or "features.8" in name:
+
+    ## Descongelar ultima capa
+    for i in [4]:
+        for param in model.stages[i].parameters():
             param.requires_grad = True
+    # --- Asegurar que la cabeza/classifier esté entrenable ---
+    # timm proporciona utilidades: get_classifier(), reset_classifier(), but classifier varies by model.
+    try:
+        # Obtener la cabeza (string) y marcar sus parámetros como trainables
+        classifier = model.get_classifier()  # devuelve el nn.Module actual del clasificador
+        # Si get_classifier devolvió algo, activamos sus parámetros
+        for param in classifier.parameters():
+            param.requires_grad = True
+    except Exception:
+        # Fallback: buscar módulos que contengan 'head' o 'classifier' en su nombre
+        for name, module in model.named_modules():
+            if "head" in name or "classifier" in name or "fc" in name:
+                for p in module.parameters():
+                    p.requires_grad = True
 
-    # Reemplazar el clasificador final
-    in_features = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(in_features, num_classes)
     model = model.to(device)
-    print("Modelo listo para transfer learning.")
+    print("Modelo listo (MobileViT-V2). Solo la(s) última(s) capa(s) están entrenables por defecto.")
     print("-" * 30)
-
     return model
 
 
@@ -150,7 +161,7 @@ def train_model(model, num_epochs):
 
             progress_bar = tqdm(dataloaders[phase], desc = f"Epochs {epoch}")
             # Iterar sobre los datos
-            for inputs, labels, _ in progress_bar:
+            for inputs, labels in progress_bar:
                 # Mover datos a la GPU/CPU
                 inputs = inputs.to(device)
                 labels = labels.to(device)
@@ -215,7 +226,7 @@ def train_model(model, num_epochs):
     model.load_state_dict(best_model_wts)
     return model, history
 
-def plot_training_history(history, save_results_dir = "./results"):
+def plot_training_history(history, save_results_dir = "./results2"):
     epochs = range(1, len(history["train_loss"]) + 1)
     os.makedirs(save_results_dir, exist_ok=True)
 
@@ -223,9 +234,9 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.figure(figsize=(6,4))
     plt.plot(epochs, history["train_loss"], label="Train")
     plt.plot(epochs, history["val_loss"], label="Val")
-    plt.title("Loss EfficientNet_V2")
+    plt.title("Loss")
     plt.xlabel("Epochs")
-    plt.ylabel("Loss ")
+    plt.ylabel("Loss")
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(save_results_dir, "loss.png"))
@@ -236,7 +247,7 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.figure(figsize=(6,4))
     plt.plot(epochs, history["train_accuracy"], label="Train")
     plt.plot(epochs, history["val_accuracy"], label="Val")
-    plt.title("Accuracy EfficientNet_V2")
+    plt.title("Accuracy")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
     plt.legend()
@@ -249,9 +260,9 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.figure(figsize=(6,4))
     plt.plot(epochs, history["train_f1"], label="Train")
     plt.plot(epochs, history["val_f1"], label="Val")
-    plt.title("F1 Score (Macro) EfficientNet_V2")
+    plt.title("F1 Score (Macro)")
     plt.xlabel("Epochs")
-    plt.ylabel("F1 Score ")
+    plt.ylabel("F1 Score")
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(save_results_dir, "f1_score.png"))
@@ -263,10 +274,9 @@ def plot_confusion_matrix(model, dataloader, class_names, device, save_path="./r
     model.eval()
     all_preds = []
     all_labels = []
-    misclassified = []  # 👈 aquí guardaremos info de imágenes equivocadas
 
     with torch.no_grad():
-        for inputs, labels, paths in tqdm(dataloader, "Predicciones:"):
+        for inputs, labels in tqdm(dataloader, "Predicciones:"):
             inputs = inputs.to(device)
             labels = labels.to(device)
 
@@ -275,27 +285,6 @@ def plot_confusion_matrix(model, dataloader, class_names, device, save_path="./r
 
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
-
-            # ============================
-            # GUARDAR IMÁGENES MAL CLASIFICADAS
-            # ============================
-            for i in range(len(labels)):
-                if preds[i] != labels[i]:
-                    misclassified.append({
-                        "path": paths[i],
-                        "real": class_names[labels[i].item()],
-                        "pred": class_names[preds[i].item()]
-                    })
-
-     # ============================
-    # GUARDAR ARCHIVO DE ERRORES
-    # ============================
-    error_path = save_path.replace(".png", "_misclassified.txt")
-    with open(error_path, "w") as f:
-        for item in misclassified:
-            f.write(f"{item['path']} | Real: {item['real']} | Pred: {item['pred']}\n")
-
-    print(f"\n❗ Archivo con imágenes mal clasificadas guardado en: {error_path}\n")
 
     # ============================
     # MÉTRICAS POR CLASE
@@ -338,7 +327,7 @@ def plot_confusion_matrix2(model, dataloader, class_names, device, save_path="./
     model.eval()
     all_preds = []
     all_labels = []
-    
+
     with torch.no_grad():
         for inputs, labels in tqdm(dataloader, "Prediccions:"):
             inputs = inputs.to(device)
@@ -414,7 +403,7 @@ if __name__ == '__main__':
         dataloaders['train'], 
         class_names, 
         device,
-        save_path="./results/train_confusion_matrix.png"
+        save_path="./results2/train_confusion_matrix.png"
     )
 
     print("Generando matriz de confusión validacion...")
@@ -424,11 +413,11 @@ if __name__ == '__main__':
         dataloaders['val'], 
         class_names, 
         device,
-        save_path="./results/val_confusion_matrix.png"
+        save_path="./results2/val_confusion_matrix.png"
     )
     print("Guardando Modelo...")
 
     # Guardar el modelo final 
-    ruta_modelo_guardado = "./efficientnetv2_s_final.pth"
+    ruta_modelo_guardado = "./mobilevit_s_final.pth"
     torch.save(model_entrenado.state_dict(), ruta_modelo_guardado)
     print(f"Modelo guardado en: {ruta_modelo_guardado}")
