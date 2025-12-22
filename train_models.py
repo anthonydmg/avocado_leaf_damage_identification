@@ -375,8 +375,8 @@ if __name__ == '__main__':
 
     # Ruta de datos y parámetros
     # Ruta de datos ya divididos
-    train_dir = './datos/dataset_split/train'
-    val_dir   = './datos/dataset_split/test'   # usa test o val, como lo hayas nombrado
+    train_dir = './datos/dataset_split_cropped_pth/train'
+    val_dir   = './datos/dataset_split_cropped_pth/test'   # usa test o val, como lo hayas nombrado
 
     dataloaders, (train_set, val_set) = load_datasets(train_dir, val_dir, batch_size=BATCH_SIZE)
     

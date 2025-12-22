@@ -21,7 +21,11 @@ def copy_organize_dataset(base_path, base_target):
                 
                 os.makedirs(dir_damage_target, exist_ok=True)
                 for file_image in tqdm(glob(f"{path_damage_condition_leaf_face}/**/*.jpg"), desc= f"Images {damage} {leaf_face}"):
+                    print("file_image:", file_image)
                     base_name = os.path.basename(file_image)
+                    if "descartes" in file_image:
+                        print("Imagen Descartada:", base_name)
+                        continue
                     target = os.path.join(dir_damage_target, base_name)
                     shutil.copy(file_image, target)
 
@@ -85,14 +89,14 @@ def copiar_indices(indices, destino, samples, classes):
 
     print(f"Copiados {len(indices)} archivos en {destino}")
 
-base_path = "./datos/imagenes_filtradas"
-base_target = "./datos/dataset_daño_hojas_palta"
+base_path = "./datos/imagenes_filtradas_actualizado"
+base_target = "./datos/dataset_daño_hojas_palta_v2"
 
 copy_organize_dataset(base_path, base_target)
 count_images_dataset(base_target)
 
 # Ruta donde están tus datos originales
-data_dir = './datos/dataset_daño_hojas_palta'
+data_dir = './datos/dataset_daño_hojas_palta_v2'
 
 # Carpeta donde guardarás los nuevos splits
 output_dir = './datos/dataset_split'
