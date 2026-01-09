@@ -11,7 +11,8 @@ import os
 # ==========================================
 
 # Ruta al archivo .pth que guardaste tras el entrenamiento
-MODEL_WEIGHTS_PATH = "./mejor_modelo_deeplab_mobilenatv3.pth" 
+
+MODEL_WEIGHTS_PATH = "./results_seg/mejor_modelo_deeplab_mobilenetv3.pth" 
 
 NUM_CLASSES = 3 # Fondo (0) y Hoja (1)
 
@@ -234,8 +235,8 @@ if __name__ == "__main__":
             INPUT_FOLDER = f"{dir_split}/{dir_class}"
 
         # Carpeta donde se guardarán los resultados
-            OUTPUT_FINAL_FOLDER = f"./datos/dataset_split_cropped_pth_v2/{os.path.basename(dir_split)}/{dir_class}"
+            OUTPUT_FINAL_FOLDER = f"./datos/dataset_split_cropped_pth_v4/{os.path.basename(dir_split)}/{dir_class}"
         
-            OUTPUT_TEST_FOLDER = f"./datos/dataset_split_cropped_visualize_pth_v2/{os.path.basename(dir_split)}/{dir_class}"
+            OUTPUT_TEST_FOLDER = f"./datos/dataset_split_cropped_visualize_pth_v4/{os.path.basename(dir_split)}/{dir_class}"
 
             run_inference(input_folder=INPUT_FOLDER, output_test_folder = OUTPUT_TEST_FOLDER, output_final_folder = OUTPUT_FINAL_FOLDER)

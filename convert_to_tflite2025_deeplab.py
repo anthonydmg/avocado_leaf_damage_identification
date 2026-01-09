@@ -51,7 +51,7 @@ def load_trained_model(model_path, num_classes, device):
     checkpoint = torch.load(model_path, map_location=device)
     base_model.load_state_dict(checkpoint)
     
-    # Envolvemos el modelo para que devuelva tensores limpios
+    # Envolvemos el modelo para que devuelva tensores limpios 
     wrapped_model = DeepLabExportWrapper(base_model)
     wrapped_model.to(device)
     wrapped_model.eval()
@@ -62,8 +62,8 @@ if __name__ == "__main__":
     # ---- CONFIGURACIÓN ----
     NUM_CLASSES = 3  # Ajusta a tus clases (0=Fondo, 1=Hoja)
     IMG_SIZE = 512   # El tamaño usado en el entrenamiento
-    MODEL_PATH = "mejor_modelo_deeplab_mobilenatv3.pth" # Tu archivo .pth
-    EXPORT_PATH = "deeplab_v3_leaf.tflite"
+    MODEL_PATH = "./results_seg/mejor_modelo_deeplab_mobilenetv3.pth" # Tu archivo .pth
+    EXPORT_PATH = "./results_seg/deeplab_v3_mobilenetlarge.tflite"
     
     DEVICE = "cpu" # Para exportar suele ser mejor usar CPU para evitar conflictos de memoria
 

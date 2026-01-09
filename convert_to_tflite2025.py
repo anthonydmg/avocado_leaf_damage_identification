@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     # ---- AJUSTAR ESTO ----
     num_classes = 6  # Cambia según tu dataset
-    model_path = "./models/torch-models/efficientnetv2_s_final.pth"
+    model_path = "./results_classification/efficientnetv2_s_final.pth"
 
     device = "cpu"#torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -80,6 +80,6 @@ if __name__ == "__main__":
     torch_out_np = output_torch.detach().numpy()
     edge_out_np = output_edge  # ya debería ser numpy
     print(np.allclose(torch_out_np, edge_out_np, atol=1e-5, rtol=1e-5))
-    edge_model.export("./models/tflite/efficientnetv2_s_final.tflite")
+    edge_model.export("./results_classification/efficientnetv2_s_final.tflite")
 
 

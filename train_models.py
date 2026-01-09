@@ -215,7 +215,7 @@ def train_model(model, num_epochs):
     model.load_state_dict(best_model_wts)
     return model, history
 
-def plot_training_history(history, save_results_dir = "./results"):
+def plot_training_history(history, save_results_dir = "./results_classification"):
     epochs = range(1, len(history["train_loss"]) + 1)
     os.makedirs(save_results_dir, exist_ok=True)
 
@@ -259,7 +259,7 @@ def plot_training_history(history, save_results_dir = "./results"):
     plt.close()   # ← IMPORTANTE
 
 
-def plot_confusion_matrix(model, dataloader, class_names, device, save_path="./results/confusion_matrix.png"):
+def plot_confusion_matrix(model, dataloader, class_names, device, save_path="./results_classification/confusion_matrix.png"):
     model.eval()
     all_preds = []
     all_labels = []
@@ -334,7 +334,7 @@ def plot_confusion_matrix(model, dataloader, class_names, device, save_path="./r
     plt.show()
     plt.close()
 
-def plot_confusion_matrix2(model, dataloader, class_names, device, save_path="./results/confusion_matrix.png"):
+def plot_confusion_matrix2(model, dataloader, class_names, device, save_path="./results_classification/confusion_matrix.png"):
     model.eval()
     all_preds = []
     all_labels = []
@@ -375,8 +375,8 @@ if __name__ == '__main__':
 
     # Ruta de datos y parámetros
     # Ruta de datos ya divididos
-    train_dir = './datos/dataset_split_cropped_pth/train'
-    val_dir   = './datos/dataset_split_cropped_pth/test'   # usa test o val, como lo hayas nombrado
+    train_dir = './datos/dataset_split_cropped_pth_v4/train'
+    val_dir   = './datos/dataset_split_cropped_pth_v4/test'   # usa test o val, como lo hayas nombrado
 
     dataloaders, (train_set, val_set) = load_datasets(train_dir, val_dir, batch_size=BATCH_SIZE)
     
@@ -414,7 +414,7 @@ if __name__ == '__main__':
         dataloaders['train'], 
         class_names, 
         device,
-        save_path="./results/train_confusion_matrix.png"
+        save_path="./results_classification/train_confusion_matrix.png"
     )
 
     print("Generando matriz de confusión validacion...")
@@ -424,11 +424,11 @@ if __name__ == '__main__':
         dataloaders['val'], 
         class_names, 
         device,
-        save_path="./results/val_confusion_matrix.png"
+        save_path="./results_classification/val_confusion_matrix.png"
     )
     print("Guardando Modelo...")
 
     # Guardar el modelo final 
-    ruta_modelo_guardado = "./efficientnetv2_s_final.pth"
+    ruta_modelo_guardado = "./results_classification/efficientnetv2_s_final.pth"
     torch.save(model_entrenado.state_dict(), ruta_modelo_guardado)
     print(f"Modelo guardado en: {ruta_modelo_guardado}")

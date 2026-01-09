@@ -8,7 +8,7 @@ import tensorflow as tf # O 'import tflite_runtime.interpreter as tflite' para d
 # ==========================================
 
 # Ruta al archivo .tflite
-MODEL_TFLITE_PATH = "./deeplab_v3_leaf.tflite" 
+MODEL_TFLITE_PATH = "./results_seg/deeplab_v3_mobilenetlarge.tflite" 
 
 NUM_CLASSES = 3 
 INPUT_SIZE = (512, 512)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
             path_in = os.path.join(dir_split, dir_class)
             if not os.path.isdir(path_in): continue
             
-            path_out_final = f"./datos/dataset_split_cropped/{os.path.basename(dir_split)}/{dir_class}"
-            path_out_viz = f"./datos/dataset_split_cropped_visualize/{os.path.basename(dir_split)}/{dir_class}"
+            path_out_final = f"./datos/dataset_split_cropped_tflite_v3/{os.path.basename(dir_split)}/{dir_class}"
+            path_out_viz = f"./datos/dataset_split_cropped_visualize_tflite_v3/{os.path.basename(dir_split)}/{dir_class}"
 
             run_inference(path_in, path_out_viz, path_out_final)

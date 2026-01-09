@@ -225,3 +225,6 @@ __marimo__/
 .streamlit/secrets.toml
 datos/
 datasets
+results_classification copy
+results_classification
+results_seg

@@ -90,13 +90,13 @@ def copiar_indices(indices, destino, samples, classes):
     print(f"Copiados {len(indices)} archivos en {destino}")
 
 base_path = "./datos/imagenes_filtradas_actualizado"
-base_target = "./datos/dataset_daño_hojas_palta_v2"
+base_target = "./datos/dataset_daño_hojas_palta"
 
 copy_organize_dataset(base_path, base_target)
 count_images_dataset(base_target)
 
 # Ruta donde están tus datos originales
-data_dir = './datos/dataset_daño_hojas_palta_v2'
+data_dir = './datos/dataset_daño_hojas_palta'
 
 # Carpeta donde guardarás los nuevos splits
 output_dir = './datos/dataset_split'
